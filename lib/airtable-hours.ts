@@ -195,9 +195,16 @@ export async function getHoursByClientId(clientId: string): Promise<HourEntry[]>
         date = dateField;
       } else if (Array.isArray(dateField) && dateField.length >= 3) {
         // Airtable date fields can be arrays [YYYY, MM, DD]
-        const dateArray = dateField as unknown as number[];
-        if (typeof dateArray[0] === 'number' && typeof dateArray[1] === 'number' && typeof dateArray[2] === 'number') {
-          date = new Date(dateArray[0], dateArray[1] - 1, dateArray[2]);
+        // Check if all elements are numbers before using them
+        const first = dateField[0];
+        const second = dateField[1];
+        const third = dateField[2];
+        if (
+          typeof first === 'number' &&
+          typeof second === 'number' &&
+          typeof third === 'number'
+        ) {
+          date = new Date(first, second - 1, third);
         } else {
           date = new Date();
         }
