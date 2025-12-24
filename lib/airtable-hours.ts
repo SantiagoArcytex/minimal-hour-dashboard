@@ -193,14 +193,16 @@ export async function getHoursByClientId(clientId: string): Promise<HourEntry[]>
         date = new Date(dateField);
       } else if (dateField instanceof Date) {
         date = dateField;
-      } else {
+      } else if (Array.isArray(dateField) && dateField.length >= 3) {
         // Airtable date fields can be arrays [YYYY, MM, DD]
-        const dateArray = dateField as number[];
-        if (Array.isArray(dateArray) && dateArray.length >= 3) {
+        const dateArray = dateField as unknown as number[];
+        if (typeof dateArray[0] === 'number' && typeof dateArray[1] === 'number' && typeof dateArray[2] === 'number') {
           date = new Date(dateArray[0], dateArray[1] - 1, dateArray[2]);
         } else {
           date = new Date();
         }
+      } else {
+        date = new Date();
       }
 
       // Handle field name variations based on actual Airtable field names
