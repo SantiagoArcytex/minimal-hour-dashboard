@@ -152,11 +152,22 @@ export async function getHoursByClientId(clientId: string): Promise<HourEntry[]>
     console.log(`Records matching client ${clientId}: ${clientRecords.length}`);
 
     // Filter out internal entries
-    // Check for "Internal" field (might not exist, which is fine)
+    // Check for "Internal" field - can be checkbox (boolean) or single select (string: "Yes"/"No")
     const filteredRecords = clientRecords.filter((record) => {
-      const internal = (record.fields.Internal as boolean) || 
-                      (record.fields as any)['Internal'] as boolean;
-      return !internal; // Only exclude if Internal is explicitly true
+      const internalField = (record.fields.Internal as any) || 
+                           (record.fields as any)['Internal'];
+      
+      if (typeof internalField === 'boolean') {
+        // Checkbox field: true = internal, false = not internal
+        return !internalField;
+      } else if (typeof internalField === 'string') {
+        // Single select field: "Yes" = internal, "No" = not internal
+        const internalStr = internalField.toLowerCase().trim();
+        return internalStr !== 'yes' && internalStr !== 'y';
+      }
+      
+      // Default: not internal if field doesn't exist or is falsy
+      return true;
     });
 
     console.log(`Records after filtering internal: ${filteredRecords.length}`);
@@ -236,12 +247,49 @@ export async function getHoursByClientId(clientId: string): Promise<HourEntry[]>
       const description = (record.fields as any)['Summary'] || 
                          (record.fields.Description as string) || 
                          (record.fields as any)['Description'] || '';
-      // "Billable" is a checkbox/boolean field, so we need to derive status from it
-      const billable = (record.fields as any)['Billable'] as boolean || false;
-      const status: 'Billable' | 'Non-billable' = billable ? 'Billable' : 'Non-billable';
+      
+      // "Billable" field is a single select with "Yes" and "No" options
+      // Also check for "Status" field as fallback
+      // Handle both checkbox (boolean) and single select (string: "Yes"/"No")
+      const billableField = (record.fields as any)['Billable'] || 
+                           (record.fields as any)['Status'] ||
+                           (record.fields.Billable as any);
+      let isBillable = false;
+      
+      if (typeof billableField === 'boolean') {
+        // Checkbox field: true = billable, false = non-billable
+        isBillable = billableField === true;
+      } else if (typeof billableField === 'string') {
+        // Single select field: "Yes" = billable, "No" = non-billable
+        const billableStr = billableField.toLowerCase().trim();
+        isBillable = billableStr === 'yes' || billableStr === 'y';
+        // Explicitly check for "No" to ensure it's treated as non-billable
+        if (billableStr === 'no' || billableStr === 'n') {
+          isBillable = false;
+        }
+      } else if (billableField === true || billableField === 1) {
+        // Handle edge cases where it might be 1/0
+        isBillable = true;
+      }
+      
+      const status: 'Billable' | 'Non-billable' = isBillable ? 'Billable' : 'Non-billable';
       const hours = (record.fields as any)['Hours Logged'] as number || 
                    (record.fields.Hours as number) || 
                    (record.fields as any)['Hours'] || 0;
+
+      // Handle Internal field - can be checkbox (boolean) or single select (string: "Yes"/"No")
+      const internalField = (record.fields.Internal as any) || 
+                           (record.fields as any)['Internal'];
+      let internal = false;
+      
+      if (typeof internalField === 'boolean') {
+        // Checkbox field: true = internal
+        internal = internalField === true;
+      } else if (typeof internalField === 'string') {
+        // Single select field: "Yes" = internal
+        const internalStr = internalField.toLowerCase().trim();
+        internal = internalStr === 'yes' || internalStr === 'y';
+      }
 
       return {
         id: record.id,
@@ -251,8 +299,7 @@ export async function getHoursByClientId(clientId: string): Promise<HourEntry[]>
         description,
         status,
         hours,
-        internal: (record.fields.Internal as boolean) || 
-                  (record.fields as any)['Internal'] as boolean || false,
+        internal,
       };
     });
 
