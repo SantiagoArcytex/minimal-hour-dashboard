@@ -25,7 +25,10 @@ export default async function handler(
   }
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    // Use Vercel's provided URL if available, otherwise fall back to env var or localhost
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const generatedUrl = `${baseUrl}/client/${id}`;
 
     await updateClientGeneratedUrl(id, generatedUrl);

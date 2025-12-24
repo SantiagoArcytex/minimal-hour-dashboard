@@ -1,6 +1,6 @@
 // Modern searchable client selector component
 import { Client } from '@/lib/types';
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ClientSelectorProps {
@@ -48,6 +48,13 @@ export default function ClientSelector({
     setHighlightedIndex(0);
   }, [filteredClients.length, searchQuery]);
 
+  const handleSelect = useCallback((clientId: string) => {
+    onSelect(clientId);
+    setIsOpen(false);
+    setSearchQuery('');
+    setHighlightedIndex(0);
+  }, [onSelect]);
+
   // Handle keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
@@ -74,7 +81,7 @@ export default function ClientSelector({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, filteredClients, highlightedIndex]);
+  }, [isOpen, filteredClients, highlightedIndex, handleSelect]);
 
   // Focus search input when dropdown opens
   useEffect(() => {
@@ -82,13 +89,6 @@ export default function ClientSelector({
       searchInputRef.current.focus();
     }
   }, [isOpen]);
-
-  const handleSelect = (clientId: string) => {
-    onSelect(clientId);
-    setIsOpen(false);
-    setSearchQuery('');
-    setHighlightedIndex(0);
-  };
 
   return (
     <div className="mb-6 relative">
