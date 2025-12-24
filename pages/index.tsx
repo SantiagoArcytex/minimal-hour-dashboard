@@ -67,13 +67,22 @@ export default function LoginPage() {
         className="max-w-md w-full space-y-8"
       >
         <div className="text-center">
-          <Logo className="mx-auto mb-4" />
-          <h2 className="text-3xl font-bold text-white mb-2">
+          <motion.h2
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="text-3xl font-bold text-white mb-2"
+          >
             Admin Login
-          </h2>
-          <p className="text-gray-400">
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="text-gray-400"
+          >
             Sign in to access the admin dashboard
-          </p>
+          </motion.p>
         </div>
 
         <motion.form
@@ -143,6 +152,15 @@ export default function LoginPage() {
             </button>
           </div>
         </motion.form>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+          className="mt-8 text-center"
+        >
+          <Logo size="medium" />
+        </motion.div>
       </motion.div>
     </div>
   );
