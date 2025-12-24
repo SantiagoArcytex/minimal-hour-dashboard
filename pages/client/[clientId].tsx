@@ -1,4 +1,7 @@
 // Public client dashboard page
+// IMPORTANT: This page is intentionally public and does NOT require authentication.
+// Client pages are meant to be shareable links that clients can access without logging in.
+// Do NOT add authentication checks to this page or its getServerSideProps.
 import { GetServerSideProps } from 'next';
 import { useState, useMemo } from 'react';
 import { Client, HourEntry, HoursSummary } from '@/lib/types';
@@ -137,6 +140,9 @@ export default function ClientDashboard({
   );
 }
 
+// Public page - no authentication required
+// This getServerSideProps intentionally does NOT check for authentication
+// to allow clients to access their dashboard via shareable links
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { clientId } = context.params!;
 

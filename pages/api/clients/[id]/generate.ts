@@ -25,10 +25,32 @@ export default async function handler(
   }
 
   try {
-    // Use Vercel's provided URL if available, otherwise fall back to env var or localhost
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    // Determine base URL with priority order:
+    // 1. NEXT_PUBLIC_BASE_URL (custom domain - highest priority)
+    // 2. Request host header (detects current domain dynamically)
+    // 3. VERCEL_URL (fallback for default Vercel domain)
+    // 4. localhost (development fallback)
+    let baseUrl: string;
+    
+    if (process.env.NEXT_PUBLIC_BASE_URL) {
+      // Use custom domain from environment variable
+      baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    } else if (req.headers.host) {
+      // Detect domain from request (works for custom domains)
+      // Handle x-forwarded-proto which can be a string or array
+      const forwardedProto = req.headers['x-forwarded-proto'];
+      const protocol = Array.isArray(forwardedProto) 
+        ? forwardedProto[0] 
+        : forwardedProto || (req.headers.host.includes('localhost') ? 'http' : 'https');
+      baseUrl = `${protocol}://${req.headers.host}`;
+    } else if (process.env.VERCEL_URL) {
+      // Fallback to Vercel's default domain
+      baseUrl = `https://${process.env.VERCEL_URL}`;
+    } else {
+      // Development fallback
+      baseUrl = 'http://localhost:3000';
+    }
+    
     const generatedUrl = `${baseUrl}/client/${id}`;
 
     await updateClientGeneratedUrl(id, generatedUrl);
