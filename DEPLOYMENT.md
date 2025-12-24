@@ -85,9 +85,12 @@ In your Vercel project dashboard:
 | `AIRTABLE_BASE_ID` | Your Airtable Base ID | `appXXXXXXXXXXXXXX` |
 | `NEXTAUTH_URL` | Your production URL | `https://yourdomain.com` |
 | `NEXTAUTH_SECRET` | Secret for NextAuth (see below) | Generated secret |
-| `ADMIN_EMAIL` | Admin login email | `admin@yourdomain.com` |
-| `ADMIN_PASSWORD` | Admin login password | `your_secure_password` |
+| `ADMIN_ACCOUNTS` | Multiple admin accounts (recommended) | `admin1@domain.com:password1,admin2@domain.com:password2` |
+| `ADMIN_EMAIL` | Single admin login email (legacy) | `admin@yourdomain.com` |
+| `ADMIN_PASSWORD` | Single admin login password (legacy) | `your_secure_password` |
 | `NEXT_PUBLIC_BASE_URL` | Public base URL for client pages | `https://yourdomain.com` |
+
+**Note:** Use either `ADMIN_ACCOUNTS` (for multiple admins) OR `ADMIN_EMAIL`/`ADMIN_PASSWORD` (for single admin). If both are set, `ADMIN_ACCOUNTS` takes precedence.
 
 ### Generate NEXTAUTH_SECRET
 

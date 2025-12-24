@@ -15,20 +15,46 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const adminEmail = process.env.ADMIN_EMAIL;
-        const adminPassword = process.env.ADMIN_PASSWORD;
+        // Support multiple admin accounts
+        // Format: ADMIN_ACCOUNTS=email1:password1,email2:password2,email3:password3
+        // Or use legacy single account: ADMIN_EMAIL and ADMIN_PASSWORD
+        const adminAccountsEnv = process.env.ADMIN_ACCOUNTS;
+        const legacyEmail = process.env.ADMIN_EMAIL;
+        const legacyPassword = process.env.ADMIN_PASSWORD;
 
-        if (!adminEmail || !adminPassword) {
-          throw new Error('Admin credentials not configured');
+        // Parse admin accounts from environment variable
+        const adminAccounts: Array<{ email: string; password: string }> = [];
+
+        // First, check for new multi-account format
+        if (adminAccountsEnv) {
+          const accounts = adminAccountsEnv.split(',').map((account) => {
+            const [email, password] = account.trim().split(':');
+            return { email: email?.trim(), password: password?.trim() };
+          });
+          
+          adminAccounts.push(...accounts.filter((acc) => acc.email && acc.password));
         }
 
-        if (
-          credentials.email === adminEmail &&
-          credentials.password === adminPassword
-        ) {
+        // Fallback to legacy single account format for backward compatibility
+        if (legacyEmail && legacyPassword) {
+          adminAccounts.push({ email: legacyEmail, password: legacyPassword });
+        }
+
+        if (adminAccounts.length === 0) {
+          throw new Error('Admin credentials not configured. Set ADMIN_ACCOUNTS or ADMIN_EMAIL/ADMIN_PASSWORD');
+        }
+
+        // Check if credentials match any admin account
+        const matchedAccount = adminAccounts.find(
+          (account) =>
+            account.email === credentials.email &&
+            account.password === credentials.password
+        );
+
+        if (matchedAccount) {
           return {
-            id: '1',
-            email: adminEmail,
+            id: matchedAccount.email, // Use email as ID for uniqueness
+            email: matchedAccount.email,
           };
         }
 

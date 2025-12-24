@@ -38,7 +38,7 @@ async function getEmployeeNames(employeeIds: string[]): Promise<Record<string, s
         ) || 'Name';
         
         // Fetch employees in batches (Airtable has limits)
-        const uniqueIds = [...new Set(employeeIds)];
+        const uniqueIds = Array.from(new Set(employeeIds));
         let foundCount = 0;
         
         for (const id of uniqueIds) {
